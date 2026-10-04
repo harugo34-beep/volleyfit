@@ -133,6 +133,15 @@
                     </button>
                 </div>
 
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button id="quick-select-all" class="py-1.5 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all" onclick="quickSelectAll()">
+                        <i class="fa-solid fa-person"></i> 全身
+                    </button>
+                    <button id="quick-select-ai" class="py-1.5 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all" onclick="quickSelectAI()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> おまかせ
+                    </button>
+                </div>
+
                 <div class="relative flex-1 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center p-2 min-h-[220px] overflow-hidden">
                     <!-- 前面SVG -->
                     <svg id="svg-front" viewBox="0 0 200 400" class="h-full max-h-[340px] w-auto transition-all drop-shadow-md">
@@ -317,16 +326,16 @@
                         <label class="block text-xs font-bold text-slate-500 mb-1.5">利用可能な器具</label>
                         <div class="grid grid-cols-2 gap-2">
                             <label class="flex items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold cursor-pointer hover:bg-slate-100 transition-all">
-                                <input type="checkbox" name="equipment" value="自重" checked class="rounded text-blue-600"> <span>自重</span>
+                                <input type="checkbox" name="equipment" value="自重" class="rounded text-blue-600"> <span>自重</span>
                             </label>
                             <label class="flex items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold cursor-pointer hover:bg-slate-100 transition-all">
-                                <input type="checkbox" name="equipment" value="チューブ" checked class="rounded text-blue-600"> <span>チューブ</span>
+                                <input type="checkbox" name="equipment" value="チューブ" class="rounded text-blue-600"> <span>チューブ</span>
                             </label>
                             <label class="flex items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold cursor-pointer hover:bg-slate-100 transition-all">
-                                <input type="checkbox" name="equipment" value="ダンベル" checked class="rounded text-blue-600"> <span>ダンベル</span>
+                                <input type="checkbox" name="equipment" value="ダンベル" class="rounded text-blue-600"> <span>ダンベル</span>
                             </label>
                             <label class="flex items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold cursor-pointer hover:bg-slate-100 transition-all">
-                                <input type="checkbox" name="equipment" value="ジム" checked class="rounded text-blue-600"> <span><i class="fa-solid fa-dumbbell mr-0.5"></i>ジム</span>
+                                <input type="checkbox" name="equipment" value="ジム" class="rounded text-blue-600"> <span><i class="fa-solid fa-dumbbell mr-0.5"></i>ジム</span>
                             </label>
                         </div>
                     </div>
@@ -383,49 +392,24 @@
         <!-- ▼▼ ダッシュボードビュー ▼▼ -->
         <div id="view-dashboard" class="hidden flex-1 min-h-0 w-full h-full overflow-y-auto bg-slate-50 p-2 md:p-6 space-y-4">
             <h2 class="text-lg md:text-xl font-bold text-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-chart-line text-blue-500"></i> ダッシュボード & 育成
+                <i class="fa-solid fa-chart-line text-blue-500"></i> ダッシュボード
             </h2>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <!-- ステータスレーダー -->
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50"></div>
-                    <h3 class="font-bold text-slate-700 text-sm mb-2 w-full flex justify-between items-center">
-                        <span><i class="fa-solid fa-medal text-amber-500 mr-1.5"></i>ステータス</span>
-                        <span id="player-title" class="text-xs bg-gradient-to-r from-amber-400 to-amber-500 text-white font-bold px-2.5 py-0.5 rounded-full shadow-sm">補欠</span>
-                    </h3>
-                    <div class="relative mt-2 mb-4">
-                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center border-4 border-blue-500 shadow-inner">
-                            <i class="fa-solid fa-user-ninja text-4xl text-blue-500"></i>
-                        </div>
-                        <div class="absolute -bottom-2 -right-2 bg-rose-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-md border border-rose-600">
-                            Lv.<span id="player-level" class="text-sm">1</span>
-                        </div>
-                    </div>
-                    <div class="w-full px-4 mb-4">
-                        <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-1">
-                            <span>NEXT LEVEL</span>
-                            <span id="player-exp">0 / 1500 EXP</span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2.5 shadow-inner overflow-hidden">
-                            <div id="exp-bar" class="bg-gradient-to-r from-blue-400 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="w-full max-w-[240px] aspect-square radar-container">
-                        <canvas id="statusRadarChart"></canvas>
-                    </div>
-                </div>
 
-                <!-- カレンダー -->
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-                    <h3 class="font-bold text-slate-700 text-sm mb-3 flex justify-between items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- カレンダー（拡大版：鍛えた日=赤ドット、ケアした日=青ドット。タップで詳細） -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col lg:col-span-2">
+                    <h3 class="font-bold text-slate-700 text-sm mb-3 flex flex-wrap justify-between items-center gap-2">
                         <span><i class="fa-regular fa-calendar-check mr-1.5 text-blue-500"></i>トレーニングカレンダー</span>
-                        <span id="calendar-month" class="text-xs bg-slate-100 px-2.5 py-1 rounded-lg text-slate-600 font-semibold"></span>
+                        <span class="flex items-center gap-3 text-[10px] font-semibold text-slate-500">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>鍛えた</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>ケアした</span>
+                            <span id="calendar-month" class="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-600"></span>
+                        </span>
                     </h3>
                     <div class="grid grid-cols-7 gap-1 text-center text-[10px] md:text-xs font-bold text-slate-400 mb-2">
                         <div class="text-rose-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
                     </div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center flex-1"></div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-center flex-1"></div>
                 </div>
 
                 <!-- 折れ線グラフ -->
@@ -448,6 +432,19 @@
             </div>
         </div>
     </main>
+
+    <!-- ▼▼ カレンダー日別詳細 モーダル ▼▼ -->
+    <div id="calendar-day-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-3 relative animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 id="calendar-day-title" class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-regular fa-calendar text-blue-600"></i> 詳細
+                </h3>
+                <button onclick="closeCalendarDayModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="calendar-day-content" class="space-y-2 text-xs max-h-[50vh] overflow-y-auto"></div>
+        </div>
+    </div>
 
     <!-- ▼▼ 新規種目登録 モーダル ▼▼ -->
     <div id="add-exercise-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4">
@@ -1491,12 +1488,98 @@
         let currentViewMode = 'front';
         let currentPurposeMode = 'train';
         let selectedMusclesMap = new Map();
+        const ALL_MUSCLE_IDS = Object.keys(defaultMusclesMap);
+
+        // ▼ 「全身」「おまかせ」クイック選択ボタンの状態管理 ▼
+        // null = どちらも使っていない（通常の手動選択中）/ 'all' = 全身ボタン適用中 / 'ai' = おまかせボタン適用中
+        let activeQuickSelect = null;
+        const QUICK_SELECT_NEUTRAL_CLASS = "py-1.5 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all";
+        const QUICK_SELECT_ACTIVE_CLASS = {
+            all: "py-1.5 px-3 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm",
+            ai:  "py-1.5 px-3 rounded-xl border-2 border-purple-500 bg-purple-50 text-purple-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+        };
+        function updateQuickSelectButtonStyles() {
+            document.getElementById('quick-select-all').className = activeQuickSelect === 'all' ? QUICK_SELECT_ACTIVE_CLASS.all : QUICK_SELECT_NEUTRAL_CLASS;
+            document.getElementById('quick-select-ai').className = activeQuickSelect === 'ai' ? QUICK_SELECT_ACTIVE_CLASS.ai : QUICK_SELECT_NEUTRAL_CLASS;
+        }
+
+        // 「全身」：現在のモード（鍛える/ケアする）で、9部位すべてを一括選択する。もう一度押すと解除。
+        function quickSelectAll() {
+            if (activeQuickSelect === 'all') {
+                selectedMusclesMap.clear();
+                activeQuickSelect = null;
+            } else {
+                selectedMusclesMap.clear();
+                ALL_MUSCLE_IDS.forEach(id => selectedMusclesMap.set(id, currentPurposeMode));
+                activeQuickSelect = 'all';
+            }
+            refreshMuscleVisuals();
+            updateSelectedTagsUI();
+            updateQuickSelectButtonStyles();
+        }
+
+        // 「おまかせ」：過去の記録を見て、鍛える部位（しばらく鍛えていない部位を優先）と
+        // ケアする部位（よく鍛えている・疲労がたまりやすい部位を優先）をAIっぽく自動提案する。
+        // 押すたびに再提案する（記録がなければ初回は全身「鍛える」をおすすめする）。
+        function quickSelectAI() {
+            let logs = [];
+            try { logs = JSON.parse(localStorage.getItem('volleyfit_logs') || '[]'); } catch (e) {}
+
+            if (logs.length === 0) {
+                selectedMusclesMap.clear();
+                ALL_MUSCLE_IDS.forEach(id => selectedMusclesMap.set(id, 'train'));
+                activeQuickSelect = 'ai';
+                refreshMuscleVisuals();
+                updateSelectedTagsUI();
+                updateQuickSelectButtonStyles();
+                return;
+            }
+
+            const now = Date.now();
+            const trainFreq = {};     // muscleId -> 鍛えた回数
+            const lastTrainedAt = {}; // muscleId -> 最後に鍛えた時刻(ms)
+            const fatigueSum = {};    // muscleId -> その部位を鍛えた日の疲労度の合計（平均化に使う）
+            const fatigueCount = {};
+            ALL_MUSCLE_IDS.forEach(id => { trainFreq[id] = 0; lastTrainedAt[id] = 0; fatigueSum[id] = 0; fatigueCount[id] = 0; });
+
+            logs.forEach(log => {
+                const t = new Date(log.date).getTime();
+                const { trainedMuscles } = getMusclesForLog(log);
+                trainedMuscles.forEach(id => {
+                    if (!(id in trainFreq)) return;
+                    trainFreq[id]++;
+                    if (!isNaN(t) && t > lastTrainedAt[id]) lastTrainedAt[id] = t;
+                    if (typeof log.fatigue === 'number') { fatigueSum[id] += log.fatigue; fatigueCount[id]++; }
+                });
+            });
+
+            const avgFatigue = id => fatigueCount[id] > 0 ? fatigueSum[id] / fatigueCount[id] : 0;
+            const daysSinceTrained = id => lastTrainedAt[id] === 0 ? Infinity : (now - lastTrainedAt[id]) / 86400000;
+
+            // ケア候補：鍛えた頻度が高い、または疲労度が高めの部位を優先
+            const careScore = id => trainFreq[id] * 1.0 + avgFatigue(id) * 1.5;
+            const careCandidates = [...ALL_MUSCLE_IDS].sort((a, b) => careScore(b) - careScore(a)).slice(0, 3).filter(id => trainFreq[id] > 0);
+
+            // 鍛える候補：しばらく鍛えていない部位（ケア候補とは重複させない）を優先
+            const trainCandidates = [...ALL_MUSCLE_IDS]
+                .filter(id => !careCandidates.includes(id))
+                .sort((a, b) => daysSinceTrained(b) - daysSinceTrained(a))
+                .slice(0, 4);
+
+            selectedMusclesMap.clear();
+            trainCandidates.forEach(id => selectedMusclesMap.set(id, 'train'));
+            careCandidates.forEach(id => selectedMusclesMap.set(id, 'care'));
+
+            activeQuickSelect = 'ai';
+            refreshMuscleVisuals();
+            updateSelectedTagsUI();
+            updateQuickSelectButtonStyles();
+        }
 
         let activeMusclesDB = {};
         let activeExercisesDB = [];
 
         let conditionChart = null;
-        let statusRadarChart = null;
 
         const navBuilder = document.getElementById('nav-builder');
         const navDashboard = document.getElementById('nav-dashboard');
@@ -1639,7 +1722,7 @@
         function setMode(mode) {
             currentPurposeMode = mode;
             document.getElementById('mode-train').className = mode === 'train' ? "py-2 px-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm" : "py-2 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all";
-            document.getElementById('mode-care').className = mode === 'care' ? "py-2 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm" : "py-2 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all";
+            document.getElementById('mode-care').className = mode === 'care' ? "py-2 px-3 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm" : "py-2 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition-all";
         }
 
         // ▼ トレーニングの目的（ゴール）モード：バレーボール / ダイエット / ボディメイク
@@ -1666,6 +1749,11 @@
         }
 
         function toggleMuscle(muscleId) {
+            // ユーザーが自分で部位を変更したら、クイック選択（全身・おまかせ）の適用中表示は解除する
+            if (activeQuickSelect !== null) {
+                activeQuickSelect = null;
+                updateQuickSelectButtonStyles();
+            }
             if (selectedMusclesMap.has(muscleId)) {
                 if (selectedMusclesMap.get(muscleId) === currentPurposeMode) {
                     selectedMusclesMap.delete(muscleId);
@@ -1989,71 +2077,33 @@
             try { logs = JSON.parse(localStorage.getItem('volleyfit_logs') || '[]'); } catch(e) {}
             renderCalendar(logs);
             renderChart(logs);
-            calculateAndRenderRPGStatus(logs);
             renderHistoryList(logs);
         }
 
-        function calculateAndRenderRPGStatus(logs) {
-            let stats = { spikePower: 10, jumpPower: 10, agility: 10, coreBalance: 10, recovery: 10 };
-            let totalExp = 0;
-            logs.forEach(log => {
-                if(!log.exercises) return;
+        // 部位ごとの訓練・ケアの内訳を、ある1件のログから集計する
+        // 戻り値: { trainedMuscles: Set<muscleId>, caredMuscles: Set<muscleId>, hasTrain: bool, hasCare: bool }
+        function getMusclesForLog(log) {
+            const trainedMuscles = new Set();
+            const caredMuscles = new Set();
+            if (log.exercises) {
                 log.exercises.forEach(ex => {
                     const dbInfo = activeExercisesDB.find(item => item.id === ex.id);
                     if (!dbInfo) return;
-                    const volume = ex.sets * ex.reps;
-                    totalExp += volume * 2;
-                    if (dbInfo.category === 'ストレッチ') {
-                        stats.recovery += (volume * 0.5);
-                    } else {
-                        switch(dbInfo.target_id) {
-                            case 'M001': case 'M002': case 'M004': case 'M007': stats.spikePower += (volume * 0.4); break;
-                            case 'M005': case 'M008': case 'M009': stats.jumpPower += (volume * 0.5); break;
-                            case 'M006': stats.agility += (volume * 0.4); break;
-                            case 'M003': stats.coreBalance += (volume * 0.5); break;
-                        }
-                    }
+                    if (dbInfo.category === 'ストレッチ') caredMuscles.add(dbInfo.target_id);
+                    else trainedMuscles.add(dbInfo.target_id);
                 });
-            });
-
-            const expForNext = 1500;
-            const level = Math.floor(totalExp / expForNext) + 1;
-            const currentLevelExp = totalExp % expForNext;
-            const expPercent = (currentLevelExp / expForNext) * 100;
-
-            let title = "補欠";
-            if (level >= 3) title = "レギュラー候補";
-            if (level >= 5) title = "フィジカルモンスター";
-            if (level >= 10) title = "チームのエース";
-            if (level >= 20) title = "世界大会MVP";
-
-            document.getElementById('player-level').textContent = level;
-            document.getElementById('player-exp').textContent = `${Math.floor(currentLevelExp)} / ${expForNext} EXP`;
-            setTimeout(() => { document.getElementById('exp-bar').style.width = `${expPercent}%`; }, 100);
-            document.getElementById('player-title').textContent = title;
-
-            const ctx = document.getElementById('statusRadarChart').getContext('2d');
-            if (statusRadarChart) statusRadarChart.destroy();
-            statusRadarChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['スパイク力', 'ジャンプ力', 'アジリティ', '体幹・安定', 'リカバリー'],
-                    datasets: [{
-                        data: [stats.spikePower, stats.jumpPower, stats.agility, stats.coreBalance, stats.recovery],
-                        backgroundColor: 'rgba(59, 130, 246, 0.3)', borderColor: '#3b82f6',
-                        pointBackgroundColor: '#f43f5e', pointBorderColor: '#fff',
-                        borderWidth: 2, pointRadius: 4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { r: { ticks: { display: false, min: 0 }, angleLines: { color: 'rgba(0,0,0,0.05)' }, grid: { color: 'rgba(0,0,0,0.05)' } } }, plugins: { legend: { display: false } } }
-            });
+            }
+            return { trainedMuscles, caredMuscles, hasTrain: trainedMuscles.size > 0, hasCare: caredMuscles.size > 0 };
         }
+
+        let calendarLogsByDay = new Map(); // day(1-31) -> このカレンダー表示中の月に属するログの配列
 
         function renderCalendar(logs) {
             const grid = document.getElementById('calendar-grid');
             const monthLabel = document.getElementById('calendar-month');
             grid.innerHTML = '';
-            
+            calendarLogsByDay = new Map();
+
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth();
@@ -2061,24 +2111,78 @@
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            const trainDays = new Set(logs.map(log => {
-                if(!log.date) return null;
+            const trainDays = new Set();
+            const careDays = new Set();
+
+            logs.forEach(log => {
+                if (!log.date) return;
                 const d = new Date(log.date);
-                if (d.getFullYear() === year && d.getMonth() === month) return d.getDate();
-                return null;
-            }).filter(v => v !== null));
+                if (d.getFullYear() !== year || d.getMonth() !== month) return;
+                const day = d.getDate();
+                if (!calendarLogsByDay.has(day)) calendarLogsByDay.set(day, []);
+                calendarLogsByDay.get(day).push(log);
+
+                const { hasTrain, hasCare } = getMusclesForLog(log);
+                if (hasTrain) trainDays.add(day);
+                if (hasCare) careDays.add(day);
+            });
 
             for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
             for (let day = 1; day <= daysInMonth; day++) {
                 const isTrained = trainDays.has(day);
+                const isCared = careDays.has(day);
+                const hasAny = calendarLogsByDay.has(day);
                 const isToday = (day === now.getDate());
                 let classes = "p-1 rounded-xl text-xs flex items-center justify-center flex-col aspect-square transition-all ";
-                if (isTrained) classes += "bg-rose-50 text-rose-700 font-bold border border-rose-200 shadow-sm";
+                if (hasAny) classes += "bg-slate-50 border border-slate-200 shadow-sm font-bold text-slate-700 cursor-pointer hover:bg-slate-100";
                 else if (isToday) classes += "bg-blue-50 text-blue-600 font-bold border border-blue-200";
                 else classes += "text-slate-600 hover:bg-slate-100";
 
-                grid.innerHTML += `<div class="${classes}"><span>${day}</span>${isTrained ? '<i class="fa-solid fa-fire text-[9px] text-rose-500 mt-0.5"></i>' : ''}</div>`;
+                const dots = `
+                    <span class="flex items-center gap-0.5 mt-0.5 h-1.5">
+                        ${isTrained ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block"></span>' : ''}
+                        ${isCared ? '<span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>' : ''}
+                    </span>`;
+
+                const onclickAttr = hasAny ? ` onclick="showCalendarDayDetail(${day})"` : '';
+                grid.innerHTML += `<div class="${classes}"${onclickAttr}><span>${day}</span>${dots}</div>`;
             }
+        }
+
+        function showCalendarDayDetail(day) {
+            const logs = calendarLogsByDay.get(day) || [];
+            if (logs.length === 0) return;
+            const now = new Date();
+            document.getElementById('calendar-day-title').innerHTML = `<i class="fa-regular fa-calendar text-blue-600"></i> ${now.getFullYear()}年${now.getMonth() + 1}月${day}日の記録`;
+
+            const content = document.getElementById('calendar-day-content');
+            content.innerHTML = logs.map(log => {
+                const { trainedMuscles, caredMuscles } = getMusclesForLog(log);
+                const muscleTag = (id, isTrain) => {
+                    const name = (activeMusclesDB && activeMusclesDB[id] && activeMusclesDB[id].name) ? activeMusclesDB[id].name : (defaultMusclesMap[id] || id);
+                    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold ${isTrain ? 'bg-rose-50 border border-rose-200 text-rose-700' : 'bg-blue-50 border border-blue-200 text-blue-700'}">${name}</span>`;
+                };
+                const tags = [
+                    ...Array.from(trainedMuscles).map(id => muscleTag(id, true)),
+                    ...Array.from(caredMuscles).map(id => muscleTag(id, false))
+                ].join(' ');
+                const exNames = log.exercises && log.exercises.length > 0 ? log.exercises.map(e => e.name).join('、') : '記録なし';
+                return `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[10px] font-bold">疲労: ${log.fatigue ?? '-'}</span>
+                            ${log.weight ? `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">${log.weight}kg</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1 flex-wrap">${tags || '<span class="text-slate-400">部位情報なし</span>'}</div>
+                        <div class="text-slate-500 text-[11px]">${exNames}</div>
+                    </div>`;
+            }).join('');
+
+            document.getElementById('calendar-day-modal').classList.remove('hidden');
+        }
+
+        function closeCalendarDayModal() {
+            document.getElementById('calendar-day-modal').classList.add('hidden');
         }
 
         function renderChart(logs) {
