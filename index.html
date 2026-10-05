@@ -539,7 +539,13 @@
         
         <div class="flex-1 flex flex-col items-center justify-center p-4 text-center relative">
             <div id="workout-type" class="text-blue-400 font-bold mb-3 text-sm md:text-base tracking-widest border border-blue-400/30 px-3 py-1 rounded-full bg-blue-400/10">TRAINING</div>
-            <h2 id="workout-name" class="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">プッシュアップ</h2>
+            <div class="flex items-center justify-center gap-2 mb-1">
+                <h2 id="workout-name" class="text-3xl md:text-5xl font-bold text-white leading-tight">プッシュアップ</h2>
+                <button id="btn-workout-howto" onclick="toggleWorkoutDesc()" class="w-8 h-8 md:w-9 md:h-9 rounded-full bg-slate-800 text-blue-400 hover:text-white flex items-center justify-center text-base shrink-0 active:scale-90 transition-all" title="やり方を見る">
+                    <i class="fa-solid fa-circle-question"></i>
+                </button>
+            </div>
+            <div id="workout-desc-panel" class="hidden max-w-md mx-auto text-slate-300 text-xs md:text-sm bg-slate-800/80 border border-slate-700 rounded-xl p-3 mb-4 leading-relaxed"></div>
             <div id="workout-set" class="text-slate-400 mb-8 font-semibold text-lg">セット 1 / 3</div>
             
             <div class="relative w-56 h-56 md:w-72 md:h-72 rounded-full border-4 border-slate-800 flex items-center justify-center mb-8 shadow-inner bg-slate-800/30">
@@ -1640,9 +1646,13 @@
             rawLogs.forEach(row => {
                 const date = row['日時'];
                 if(!date) return;
-                
-                if(!logsMap.has(date)) {
-                    logsMap.set(date, {
+                // log_idがあれば記録単位のユニークなグループキーとして使う（削除の確実な特定に使う）。
+                // 古い記録（log_id列が無い時代に保存されたもの）は、日時をキーとして後方互換で扱う。
+                const groupKey = row['log_id'] || date;
+
+                if(!logsMap.has(groupKey)) {
+                    logsMap.set(groupKey, {
+                        id: row['log_id'] || date,
                         date: date,
                         fatigue: parseInt(row['疲労度']) || 3,
                         weight: row['体重'] ? parseFloat(row['体重']) : null,
@@ -1650,7 +1660,7 @@
                     });
                 }
                 if (row['種目ID']) {
-                    logsMap.get(date).exercises.push({
+                    logsMap.get(groupKey).exercises.push({
                         id: row['種目ID'],
                         name: row['種目名'],
                         sets: parseInt(row['セット数']) || 1,
@@ -1840,37 +1850,48 @@
                     const defaultSets = String(preset.sets);
 
                     const card = document.createElement('div');
-                    card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col gap-2 shadow-sm relative";
+                    card.className = "relative rounded-xl overflow-hidden";
                     card.dataset.exerciseId = ex.id;
                     card.dataset.exerciseName = ex.name;
                     card.dataset.category = ex.category;
                     card.dataset.unit = unit;
 
+                    // 一人では不可能（補助が必要）な種目はスワイプ、または✕ボタンでメニューから削除できる。
+                    // 削除された種目は、ワークアウト実行・記録保存のどちらにも含まれなくなる。
                     card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${ex.category === 'トレーニング' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}">${ex.category}</span>
-                                <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded ml-1"><i class="fa-solid fa-toolbox mr-0.5"></i>${ex.equipment}</span>
-                                <h4 class="font-bold text-slate-800 text-xs md:text-sm mt-1">${ex.name}</h4>
-                            </div>
-                            <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm">
-                                <span class="text-[11px] font-bold text-slate-600">完了</span>
-                                <input type="checkbox" class="ex-checkbox w-4 h-4 rounded text-blue-600 focus:ring-blue-500" checked>
-                            </label>
+                        <div class="absolute inset-0 bg-rose-500 rounded-xl flex items-center justify-end pr-5 text-white font-bold text-xs gap-1.5">
+                            <i class="fa-solid fa-trash-can"></i> 削除
                         </div>
-                        <p class="text-[11px] text-slate-600 leading-normal">${ex.desc}</p>
-                        <div class="flex items-center justify-between pt-2 border-t border-slate-200 text-xs text-slate-500">
-                            <div class="flex items-center gap-3">
-                                <span>セット: <input type="number" class="ex-sets w-12 text-center border rounded py-0.5 font-bold text-slate-700 bg-white" value="${defaultSets}" min="1" max="10"></span>
-                                <span>${unit}: <input type="number" class="ex-reps w-14 text-center border rounded py-0.5 font-bold text-slate-700 bg-white" value="${defaultVal}" step="5"> ${unit}</span>
+                        <div class="swipe-content bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col gap-2 shadow-sm relative" style="transform: translateX(0px); touch-action: pan-y;">
+                            <button type="button" onclick="removeExerciseCard(this.closest('[data-exercise-id]'))" class="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-300 rounded-full text-slate-400 hover:text-rose-500 hover:border-rose-300 flex items-center justify-center text-[10px] shadow-sm z-10" title="この種目をメニューから削除（補助が必要・実施不可など）">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded ${ex.category === 'トレーニング' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}">${ex.category}</span>
+                                    <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded ml-1"><i class="fa-solid fa-toolbox mr-0.5"></i>${ex.equipment}</span>
+                                    <h4 class="font-bold text-slate-800 text-xs md:text-sm mt-1">${ex.name}</h4>
+                                </div>
+                                <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm">
+                                    <span class="text-[11px] font-bold text-slate-600">完了</span>
+                                    <input type="checkbox" class="ex-checkbox w-4 h-4 rounded text-blue-600 focus:ring-blue-500" checked>
+                                </label>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-normal">${ex.desc}</p>
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-200 text-xs text-slate-500">
+                                <div class="flex items-center gap-3">
+                                    <span>セット: <input type="number" class="ex-sets w-12 text-center border rounded py-0.5 font-bold text-slate-700 bg-white" value="${defaultSets}" min="1" max="10"></span>
+                                    <span>${unit}: <input type="number" class="ex-reps w-14 text-center border rounded py-0.5 font-bold text-slate-700 bg-white" value="${defaultVal}" step="5"> ${unit}</span>
+                                </div>
                             </div>
                         </div>
                     `;
                     container.appendChild(card);
+                    attachSwipeToDelete(card);
 
                     if (totalExercisesGenerated > 0 && ex.category === 'トレーニング') {
                         const restCard = document.createElement('div');
-                        restCard.className = "bg-emerald-50/60 border border-emerald-200/60 rounded-xl p-2 flex items-center justify-between text-xs text-emerald-800 px-4";
+                        restCard.className = "rest-card bg-emerald-50/60 border border-emerald-200/60 rounded-xl p-2 flex items-center justify-between text-xs text-emerald-800 px-4";
                         restCard.innerHTML = `<span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-stopwatch"></i> レスト（インターバル）</span><span class="font-semibold bg-emerald-100 px-2 py-0.5 rounded">${preset.rest}秒</span>`;
                         container.appendChild(restCard);
                     }
@@ -1886,6 +1907,66 @@
                 startBtn.className = "mt-4 bg-white pt-2 border-t border-slate-200 sticky bottom-0 z-10 pb-4";
                 startBtn.innerHTML = `<button onclick="startWorkout()" class="w-full bg-gradient-to-r from-rose-500 to-rose-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:from-rose-600 hover:to-rose-700 active:scale-95 transition-transform flex items-center justify-center gap-2 text-sm"><i class="fa-solid fa-play"></i> ワークアウト実行モードを開始</button>`;
                 container.appendChild(startBtn);
+            }
+        }
+
+        // ▼ パーソナライズドメニューの各カードを左にスワイプすると削除できるようにする ▼
+        // （補助が必要・一人では実施できない種目などを、メニューから外すための機能）
+        function attachSwipeToDelete(card) {
+            const content = card.querySelector('.swipe-content');
+            if (!content) return;
+            let startX = 0;
+            let currentX = 0;
+            let dragging = false;
+            const DELETE_THRESHOLD = -70;
+
+            function getX(e) { return (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX; }
+
+            function onDown(e) {
+                // 入力欄・ボタン（完了チェック、セット数、✕ボタンなど）の操作はスワイプと干渉させない
+                if (e.target.closest('input, button, select, textarea')) return;
+                dragging = true;
+                startX = getX(e);
+                content.style.transition = 'none';
+            }
+            function onMove(e) {
+                if (!dragging) return;
+                currentX = Math.min(0, getX(e) - startX);
+                content.style.transform = `translateX(${currentX}px)`;
+            }
+            function onUp() {
+                if (!dragging) return;
+                dragging = false;
+                content.style.transition = 'transform 0.2s ease';
+                if (currentX < DELETE_THRESHOLD) {
+                    content.style.transform = 'translateX(-100%)';
+                    content.style.opacity = '0';
+                    setTimeout(() => removeExerciseCard(card), 180);
+                } else {
+                    content.style.transform = 'translateX(0px)';
+                }
+                currentX = 0;
+            }
+
+            content.addEventListener('pointerdown', onDown);
+            content.addEventListener('pointermove', onMove);
+            content.addEventListener('pointerup', onUp);
+            content.addEventListener('pointercancel', onUp);
+        }
+
+        // 種目カードをメニューから削除する（✕ボタン・スワイプのどちらからも呼ばれる）。
+        // 直後に続く「レスト」カードも一緒に取り除き、削除後は実行・保存の対象から自動的に外れる。
+        function removeExerciseCard(card) {
+            if (!card) return;
+            const next = card.nextElementSibling;
+            if (next && next.classList.contains('rest-card')) next.remove();
+            card.remove();
+
+            const container = document.getElementById('menu-container');
+            const remaining = container.querySelectorAll('div[data-exercise-id]');
+            if (remaining.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200 p-4">すべての種目を削除しました。部位を選び直すか、「メニューを生成する」をもう一度押してください。</div>`;
+                document.getElementById('record-section').classList.add('hidden');
             }
         }
 
@@ -1905,9 +1986,11 @@
                 const unit = card.dataset.unit;
                 const sets = parseInt(card.querySelector('.ex-sets').value) || 1;
                 const val = parseInt(card.querySelector('.ex-reps').value) || 10;
-                
+                const dbInfo = activeExercisesDB.find(item => item.id === id);
+                const desc = dbInfo ? dbInfo.desc : '';
+
                 for(let s = 1; s <= sets; s++) {
-                    currentWorkoutPlan.push({ type: 'exercise', id, name, category, set: s, totalSets: sets, val, unit });
+                    currentWorkoutPlan.push({ type: 'exercise', id, name, category, set: s, totalSets: sets, val, unit, desc });
                     if (!(idx === checkedCards.length - 1 && s === sets)) {
                         currentWorkoutPlan.push({ type: 'rest', duration: 45 });
                     }
@@ -1936,23 +2019,32 @@
             const circle = document.getElementById('workout-timer-circle');
             const actionBtn = document.getElementById('btn-workout-action');
             const valEl = document.getElementById('workout-val');
-            
+            const howtoBtn = document.getElementById('btn-workout-howto');
+            const descPanel = document.getElementById('workout-desc-panel');
+
+            // ステップが切り替わったら、やり方の説明パネルは一旦閉じておく
+            descPanel.classList.add('hidden');
+            descPanel.textContent = '';
+
             if (step.type === 'rest') {
                 document.getElementById('workout-type').textContent = "REST / INTERVAL";
                 document.getElementById('workout-type').className = "text-emerald-400 font-bold mb-3 text-sm tracking-widest border border-emerald-400/30 px-3 py-1 rounded-full bg-emerald-400/10";
                 document.getElementById('workout-name').textContent = "インターバル（休憩）";
                 document.getElementById('workout-set').textContent = "水分を摂り、呼吸を整えましょう";
+                howtoBtn.classList.add('hidden');
                 svg.classList.remove('hidden'); circle.style.stroke = "#10b981";
                 actionBtn.textContent = "スキップ";
                 actionBtn.className = "flex-1 max-w-[240px] h-16 rounded-full bg-slate-700 text-white font-bold text-lg shadow-lg active:scale-95";
                 runTimer(step.duration, circle, valEl);
-                
+
             } else {
                 document.getElementById('workout-type').textContent = step.category.toUpperCase();
                 document.getElementById('workout-type').className = "text-blue-400 font-bold mb-3 text-sm tracking-widest border border-blue-400/30 px-3 py-1 rounded-full bg-blue-400/10";
                 document.getElementById('workout-name').textContent = step.name;
                 document.getElementById('workout-set').textContent = `セット ${step.set} / ${step.totalSets}`;
-                
+                if (step.desc) { howtoBtn.classList.remove('hidden'); howtoBtn.dataset.desc = step.desc; }
+                else { howtoBtn.classList.add('hidden'); }
+
                 if (step.unit === '秒') {
                     svg.classList.remove('hidden'); circle.style.stroke = "#3b82f6";
                     actionBtn.textContent = "一時停止";
@@ -1980,6 +2072,20 @@
                 remainingTime--; updateDisplay();
                 if (remainingTime <= 0) { clearInterval(timerInterval); isTimerRunning = false; nextWorkoutStep(); }
             }, 1000);
+        }
+
+        // 現在のステップの「やり方」説明パネルを開閉する（？ボタンをタップで表示）
+        function toggleWorkoutDesc() {
+            const howtoBtn = document.getElementById('btn-workout-howto');
+            const descPanel = document.getElementById('workout-desc-panel');
+            if (!descPanel.classList.contains('hidden')) {
+                descPanel.classList.add('hidden');
+                return;
+            }
+            const desc = howtoBtn.dataset.desc || '';
+            if (!desc) return;
+            descPanel.textContent = desc;
+            descPanel.classList.remove('hidden');
         }
 
         function toggleWorkoutAction() {
@@ -2027,8 +2133,13 @@
             if (checkedExercises.length === 0) { alert('完了した種目にチェックを入れてください。'); return; }
 
             const bodyWeightInput = document.getElementById('body-weight');
+            // この1回の記録だけに紐づくユニークIDを発行する。
+            // 日時の文字列だけで記録を特定すると、形式のズレなどで削除が正しく効かないことがあるため、
+            // 削除時はこのIDで確実に一致する行だけを対象にする。
+            const logId = 'log_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
             const logData = {
                 action: 'save_log',
+                log_id: logId,
                 date: new Date().toLocaleString('ja-JP'),
                 fatigue: parseInt(document.getElementById('fatigue-level').value),
                 weight: bodyWeightInput.value ? parseFloat(bodyWeightInput.value) : null,
@@ -2206,15 +2317,21 @@
             });
         }
 
+        // 履歴に現在表示中のログ（削除時にインデックスから参照する。日時の文字列をHTML属性に
+        // 直接埋め込んで引用符などで事故るのを避けるため、インデックス経由で参照する）
+        let historyListLogsCache = [];
+
         function renderHistoryList(logs) {
             const container = document.getElementById('history-list-container');
             container.innerHTML = '';
             if (logs.length === 0) {
                 container.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">過去の記録はありません。</div>';
+                historyListLogsCache = [];
                 return;
             }
             const reversed = [...logs].reverse();
-            reversed.forEach(log => {
+            historyListLogsCache = reversed;
+            reversed.forEach((log, idx) => {
                 const exNames = log.exercises && log.exercises.length > 0 ? log.exercises.map(e => e.name).join(', ') : '記録なし';
                 const item = document.createElement('div');
                 item.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs";
@@ -2227,7 +2344,7 @@
                         </div>
                         <div class="text-slate-500 truncate max-w-md">${exNames}</div>
                     </div>
-                    <button onclick="deleteLog('${log.date}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg border border-rose-200 font-bold transition-all flex items-center gap-1 shrink-0">
+                    <button onclick="deleteLogAt(${idx})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg border border-rose-200 font-bold transition-all flex items-center gap-1 shrink-0">
                         <i class="fa-solid fa-trash-can"></i> 削除
                     </button>
                 `;
@@ -2235,18 +2352,24 @@
             });
         }
 
-        function deleteLog(dateStr) {
-            if(!confirm(`${dateStr} の記録を削除しますか？`)) return;
+        function deleteLogAt(idx) {
+            const log = historyListLogsCache[idx];
+            if (!log) return;
+            if(!confirm(`${log.date} の記録を削除しますか？`)) return;
+
+            const logId = log.id || log.date;
             try {
                 let logs = JSON.parse(localStorage.getItem('volleyfit_logs') || '[]');
-                logs = logs.filter(l => l.date !== dateStr);
+                logs = logs.filter(l => (l.id || l.date) !== logId);
                 localStorage.setItem('volleyfit_logs', JSON.stringify(logs));
                 renderDashboard();
             } catch(e) {}
 
+            // log_id（新しい記録）があればそれで確実に一致する行だけを削除する。
+            // log_idが無い古い記録は、日時とuser_idでの一致にフォールバックする。
             fetch(GAS_WEB_APP_URL, {
                 method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete_log', target_date: dateStr, user_id: CURRENT_USER_ID })
+                body: JSON.stringify({ action: 'delete_log', log_id: log.id || '', target_date: log.date, user_id: CURRENT_USER_ID })
             }).then(() => {
                 fetchDataFromGAS();
             }).catch(err => { alert('削除通信エラー'); });
